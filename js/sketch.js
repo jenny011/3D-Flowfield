@@ -2,20 +2,17 @@ let scene, camera, renderer,controls;
 let geometry1, material1;
 let geometry2, material2;
 let geometry3=[],material3=[];
-let cube=[],points=[],angles=[];
-let vectors=[];
+let cube=[],points=[]
+let angles=[],vectors=[];
+let lines=[];
 let frameCount = 0;
 let params = {
-	size:1,
-	boxSize: 20*1,
+	size:3,
 	offset: 0.1,
 	offsetSpeed: 0.2,
-	c:10,
-	r:10,
-	h:10,
-	cameraX:20,
-	cameraY:0,
-	cameraZ:7
+	c:5,
+	r:5,
+	h:3,
 };
 
 let gui = new dat.GUI();
@@ -24,10 +21,6 @@ gui.add(params, 'offset', 0.05, 1);
 gui.add(params, 'c', 1, 20);
 gui.add(params, 'r', 1, 20);
 gui.add(params, 'h', 1, 20);
-gui.add(params, 'cameraX', 0, 360);
-gui.add(params, 'cameraY', 0, 360);
-gui.add(params, 'cameraZ', 0, 360);
-
 
 //setup
 init();
@@ -39,7 +32,7 @@ function init(){
   let near = 0.1;
   let far = 100;
   camera = new THREE.PerspectiveCamera( fov, aspect, near, far );
-  camera.position.set(params.cameraX,params.cameraY,params.cameraZ);
+  camera.position.set(0,0,params.size*params.h*2);
 
   //renderer
   renderer = new THREE.WebGLRenderer();
@@ -52,18 +45,18 @@ function init(){
   var color = new THREE.Color(5,5,5);
   material1 = new THREE.MeshPhongMaterial( {
     color: color ,
-    opacity:0.02,
-    transparent: true
-    // wireframe: true
+    opacity:0.05,
+    transparent: true,
+    wireframe: true
   } ); //surface
 
   geometry2 = new THREE.Geometry();
   geometry2.vertices.push(new THREE.Vector3());
   material2 = new THREE.PointsMaterial( {
-    color: 0xffffff,
-    size:0.1,
-    // opacity:0.8,
-    // transparent:true,
+    color: 0xffff00,
+    size:0.06,
+    opacity:1,
+    transparent:true,
     blending:THREE.AdditiveBlending
   } ); //surface
 
@@ -75,8 +68,8 @@ function init(){
 			this.initPos = new THREE.Vector3(x,y,z);
       this.vel = new THREE.Vector3();
       this.acc = new THREE.Vector3();
-      this.maxSpeed = 0.05;
-      this.maxSteer = 0.2;
+      this.maxSpeed = 0.01;
+      this.maxSteer = 0.1;
     }
     init(){
 			this.point.geometry.dynamic = true;
@@ -92,21 +85,38 @@ function init(){
       this.point.position.set(this.pos.x,this.pos.y,this.pos.z);
     }
 		reappear(){
-			if(this.pos.x > params.boxSize||this.pos.x < 0||this.pos.y > params.boxSize||this.pos.y < 0||this.pos.z > params.boxSize||this.pos.z < 0){
-        this.pos.x = this.initPos.x;
-				this.pos.y = this.initPos.y;
-				this.pos.z = this.initPos.z;
-				// this.pos.x = Math.random()*params.boxSize;
-				// this.pos.y = Math.random()*params.boxSize;
-				// this.pos.z = Math.random()*params.boxSize;
-      }
+			// if(this.pos.x > params.size*params.c||this.pos.x < 0||this.pos.y > params.size*params.r||this.pos.y < 0||this.pos.z > params.size*params.h||this.pos.z < 0){
+      //   // this.pos.x = this.initPos.x;
+			// 	// this.pos.y = this.initPos.y;
+			// 	// this.pos.z = this.initPos.z;
+			// 	this.pos.x = Math.random()*params.size*params.c;
+			// 	this.pos.y = Math.random()*params.size*params.r;
+			// 	this.pos.z = Math.random()*params.size*params.h;
+      // }
+			if(this.pos.x > params.size*params.c){
+				this.pos.x = Math.random();
+			}
+			if(this.pos.x < 0){
+				this.pos.x = params.size*params.c-Math.random();
+			}
+			if(this.pos.y > params.size*params.r){
+				this.pos.y = Math.random();
+			}
+			if(this.pos.y < 0){
+				this.pos.y = params.size*params.r-Math.random();
+			}
+			if(this.pos.z > params.size*params.h){
+				this.pos.z = Math.random();
+			}
+			if(this.pos.z < 0){
+				this.pos.z = params.size*params.h-Math.random();
+			}
 		}
     applyForce(force){
       let f = force.clone();
       this.acc.add(f);
     }
-    flow(angle){
-      let desiredVel = angle.toVector3();
+    flow(desiredVel){
       desiredVel.setLength(this.maxSpeed);
       let steerForce = new THREE.Vector3();
       steerForce.subVectors(desiredVel,this.vel);
@@ -128,6 +138,7 @@ function init(){
         scene.add(cube[index]);
 
         angles.push(new THREE.Euler(1,1,1));
+				vectors.push(new THREE.Vector3());
 
 				let g = new THREE.Geometry();
 				g.vertices.push(new THREE.Vector3(), new THREE.Vector3(1,1,1));
@@ -135,23 +146,25 @@ function init(){
 				geometry3.push(g);
 				material3.push(new THREE.LineBasicMaterial( {
 					color: 0xff0000,
-					linewidth: 3,
+					linewidth: 0.1,
+					opacity:0.5,
+					transparent:true
 				} )); //surface
-				vectors.push(new THREE.Line(geometry3[index],material3[index]));
-				scene.add(vectors[index]);
+				lines.push(new THREE.Line(geometry3[index],material3[index]));
+				scene.add(lines[index]);
 
-				let p = new Particle(i*params.size,j*params.size,k*params.size);
+				// let p = new Particle(i*params.size,j*params.size,k*params.size);
 				// p.init();
-				points.push(p);
+				// points.push(p);
       }
     }
   }
 
-	// for(let i=0; i<500; i++){
-	// 	let p = new Particle(Math.random()*params.boxSize,Math.random()*params.boxSize,Math.random()*params.boxSize);
-	// 	p.init()
-	// 	points.push(p);
-	// }
+	for(let i=0; i<1000; i++){
+		let p = new Particle(Math.random()*params.size*params.c,Math.random()*params.size*params.r,Math.random()*params.size*params.h);
+		p.init()
+		points.push(p);
+	}
 
 
   //light
@@ -162,14 +175,14 @@ function init(){
   animate();
 }
 
-//draw
+//--------------------draw--------------------
 function animate() {
 	requestAnimationFrame( animate ); //call itself after rendering everything
   render();
 	renderer.render( scene, camera );
 }
 
-//sketch
+//*******************sketch********************
 var fn = 'simplex';
 function render(){
 	var noisefn = fn === 'simplex' ? noise.simplex3 : noise.perlin3;
@@ -185,18 +198,19 @@ function render(){
         let z = k*params.size;
 
 				//get noise
-        let randomness = 0.2;
-        let fluctSpeed = 0.1;
+        let randomness = 0.008;
+        let fluctSpeed = 1;
         let freqX = (x+frameCount * fluctSpeed)*randomness;
         let freqY = (y+frameCount * fluctSpeed)*randomness;
         let freqZ = (z+frameCount * fluctSpeed)*randomness;
-        let noise = PerlinNoise.noise(freqX+params.offset,freqY+params.offset,freqZ+params.offset)*Math.PI;
+        let noise = PerlinNoise.noise(x+params.offset,y+params.offset,freqZ+params.offset)*Math.PI*2;
 				let angle = angles[index]; angle.set(Math.cos(noise),Math.sin(noise),Math.cos(noise));
 				let noiseVec = new THREE.Vector3();
 				noiseVec = angle.toVector3();
 				noiseVec.clampLength(0,params.size/2);
-				vectors[index].geometry.vertices[1].addVectors(vectors[index].geometry.vertices[0],noiseVec);
-				vectors[index].geometry.verticesNeedUpdate = true;
+				vectors[index] = noiseVec;
+				lines[index].geometry.vertices[1].addVectors(lines[index].geometry.vertices[0],noiseVec);
+				lines[index].geometry.verticesNeedUpdate = true;
       }
     }
   }
@@ -205,9 +219,9 @@ function render(){
     let ix = Math.floor(p.pos.x/params.size);
     let iy = Math.floor(p.pos.y/params.size);
     let iz = Math.floor(p.pos.z/params.size);
-    let angleIndex = ix+iy*params.c+iz*params.c*params.r;
-    if(angleIndex<angles.length){
-      p.flow(angles[angleIndex]);
+    let vecIndex = ix+iy*params.c+iz*params.c*params.r;
+    if(vecIndex<vectors.length){
+      p.flow(vectors[vecIndex]);
     }
     p.update();
   }

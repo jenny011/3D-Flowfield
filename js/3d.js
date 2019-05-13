@@ -31,7 +31,7 @@ f2.add(params, 'particleSpeed', 0, 0.2);
 f2.addColor(params, 'particleColor');
 
 f3.addColor(params, 'bgColor');
-f3.add(params, 'particleBlending', {		
+f3.add(params, 'particleBlending', {
 	Additive: THREE.AdditiveBlending,
 	Subtractive: THREE.SubtractiveBlending,
 	Normal: THREE.NormalBlending
@@ -103,23 +103,23 @@ Particle.prototype.update = function() {
 	this.acc.set(1,1,1);
 	this.acc.applyEuler(this.angle);
 	this.acc.multiplyScalar(params.noiseStrength);
-	
+
 	this.acc.clampLength(0, params.particleSpeed);
 	this.vel.clampLength(0, params.particleSpeed);
-	
+
 	this.vel.add(this.acc);
 	this.pos.add(this.vel);
-	
+
 	// this.acc.multiplyScalar(params.particleDrag);
 	// this.vel.multiplyScalar(params.particleDrag);
-	
+
 	if(this.pos.x > params.size) this.pos.x = 0 + Math.random();
 	if(this.pos.y > params.size) this.pos.y = 0 + Math.random();
 	if(this.pos.z > params.size) this.pos.z = 0 + Math.random();
 	if(this.pos.x < 0) this.pos.x = params.size - Math.random();
 	if(this.pos.y < 0) this.pos.y = params.size - Math.random();
 	if(this.pos.z < 0) this.pos.z = params.size - Math.random();
-	
+
 	this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
 }
 
@@ -140,7 +140,7 @@ function render() {
 	// stats.begin();
   controls.update();
 	controls.target.set(params.size/2,params.size/2,params.size/2);
-	
+
 	// Update particle count
 	numParticlesOffset = parseInt(params.particleCount - particles.length);
 	if(numParticlesOffset > 0){
@@ -160,11 +160,11 @@ function render() {
    		particles.splice(i, 1);
 		}
 	}
-	
+
 	// Update particles based on their coords
 	for(var i = 0; i < particles.length; i++){
 		p = particles[i];
-		
+
 		noise = PerlinNoise.noise(
 			p.pos.x*params.noiseScale,
 			p.pos.y*params.noiseScale,
@@ -174,14 +174,14 @@ function render() {
 		p.angle.set(noise, noise, noise);
 		p.update();
 	}
-	
+
 	// Update params
 	renderer.setClearColor(params.bgColor);
 	material.color.setHex(params.particleColor);
 	material.size = params.particleSize;
 	material.blending = parseInt(params.particleBlending);
 	if(!params.noiseFreeze) frameCount++;
-	
+
 	renderer.render( scene, camera );
 	// stats.end();
 }

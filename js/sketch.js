@@ -7,8 +7,8 @@ let angles=[],vectors=[];
 let lines=[];
 let frameCount = 0;
 let params = {
-	size:3,
-	offset: 0.1,
+	size:1,
+	offset: 1,
 	offsetSpeed: 0.2,
 	c:5,
 	r:5,
@@ -25,6 +25,11 @@ gui.add(params, 'h', 1, 20);
 //setup
 init();
 function init(){
+
+	let value = THREE.Math.clamp(10, 1, 5);
+	console.log(value);
+
+
   //create scene
   scene = new THREE.Scene();
   let fov = 100;
@@ -55,7 +60,7 @@ function init(){
   material2 = new THREE.PointsMaterial( {
     color: 0xffff00,
     size:0.06,
-    opacity:1,
+    opacity:0.5,
     transparent:true,
     blending:THREE.AdditiveBlending
   } ); //surface
@@ -69,7 +74,7 @@ function init(){
       this.vel = new THREE.Vector3();
       this.acc = new THREE.Vector3();
       this.maxSpeed = 0.01;
-      this.maxSteer = 0.1;
+      this.maxSteer = 0.01;
     }
     init(){
 			this.point.geometry.dynamic = true;
@@ -80,37 +85,33 @@ function init(){
     update(){
       this.vel.add(this.acc);
       this.pos.add(this.vel);
-      this.acc.multiplyScalar(0);
-      this.reappear();
-      this.point.position.set(this.pos.x,this.pos.y,this.pos.z);
+      this.acc.set(0,0,0);
     }
 		reappear(){
-			// if(this.pos.x > params.size*params.c||this.pos.x < 0||this.pos.y > params.size*params.r||this.pos.y < 0||this.pos.z > params.size*params.h||this.pos.z < 0){
-      //   // this.pos.x = this.initPos.x;
-			// 	// this.pos.y = this.initPos.y;
-			// 	// this.pos.z = this.initPos.z;
-			// 	this.pos.x = Math.random()*params.size*params.c;
-			// 	this.pos.y = Math.random()*params.size*params.r;
-			// 	this.pos.z = Math.random()*params.size*params.h;
-      // }
-			if(this.pos.x > params.size*params.c){
-				this.pos.x = Math.random();
-			}
-			if(this.pos.x < 0){
-				this.pos.x = params.size*params.c-Math.random();
-			}
-			if(this.pos.y > params.size*params.r){
-				this.pos.y = Math.random();
-			}
-			if(this.pos.y < 0){
-				this.pos.y = params.size*params.r-Math.random();
-			}
-			if(this.pos.z > params.size*params.h){
-				this.pos.z = Math.random();
-			}
-			if(this.pos.z < 0){
-				this.pos.z = params.size*params.h-Math.random();
-			}
+			if(this.pos.x > params.size*params.c-params.size/2||this.pos.x < 0-params.size/2||this.pos.y > params.size*params.r-params.size/2||this.pos.y < 0-params.size/2||this.pos.z > params.size*params.h-params.size/2||this.pos.z < 0-params.size/2){
+        this.pos.x = this.initPos.x;
+				this.pos.y = this.initPos.y;
+				this.pos.z = this.initPos.z;
+				this.vel.set(0,0,0);
+      }
+			// if(this.pos.x > params.size*params.c){
+			// 	this.pos.x = Math.random();
+			// }
+			// if(this.pos.x < 0){
+			// 	this.pos.x = params.size*params.c-Math.random();
+			// }
+			// if(this.pos.y > params.size*params.r){
+			// 	this.pos.y = Math.random();
+			// }
+			// if(this.pos.y < 0){
+			// 	this.pos.y = params.size*params.r-Math.random();
+			// }
+			// if(this.pos.z > params.size*params.h){
+			// 	this.pos.z = Math.random();
+			// }
+			// if(this.pos.z < 0){
+			// 	this.pos.z = params.size*params.h-Math.random();
+			// }
 		}
     applyForce(force){
       let f = force.clone();
@@ -124,6 +125,9 @@ function init(){
 			steerForce.clampLength(0,this.maxSteer);
       this.applyForce(steerForce);
     }
+		show(){
+			this.point.position.set(this.pos.x,this.pos.y,this.pos.z);
+		}
   }
 
 
@@ -146,9 +150,9 @@ function init(){
 				geometry3.push(g);
 				material3.push(new THREE.LineBasicMaterial( {
 					color: 0xff0000,
-					linewidth: 0.1,
+					linewidth: 0.5,
 					opacity:0.5,
-					transparent:true
+					// transparent:true
 				} )); //surface
 				lines.push(new THREE.Line(geometry3[index],material3[index]));
 				scene.add(lines[index]);
@@ -161,7 +165,7 @@ function init(){
   }
 
 	for(let i=0; i<1000; i++){
-		let p = new Particle(Math.random()*params.size*params.c,Math.random()*params.size*params.r,Math.random()*params.size*params.h);
+		let p = new Particle(Math.random()*params.size*params.c-params.size/2,Math.random()*params.size*params.r-params.size/2,Math.random()*params.size*params.h-params.size/2);
 		p.init()
 		points.push(p);
 	}
@@ -198,12 +202,12 @@ function render(){
         let z = k*params.size;
 
 				//get noise
-        let randomness = 0.008;
-        let fluctSpeed = 1;
+        let randomness = 0.03;
+        let fluctSpeed = 0.05;
         let freqX = (x+frameCount * fluctSpeed)*randomness;
         let freqY = (y+frameCount * fluctSpeed)*randomness;
         let freqZ = (z+frameCount * fluctSpeed)*randomness;
-        let noise = PerlinNoise.noise(x+params.offset,y+params.offset,freqZ+params.offset)*Math.PI*2;
+        let noise = (noisefn(freqX,freqY,freqZ)+1)*Math.PI;
 				let angle = angles[index]; angle.set(Math.cos(noise),Math.sin(noise),Math.cos(noise));
 				let noiseVec = new THREE.Vector3();
 				noiseVec = angle.toVector3();
@@ -216,14 +220,16 @@ function render(){
   }
   for(let i=0;i<points.length;i++){
     p = points[i];
-    let ix = Math.floor(p.pos.x/params.size);
-    let iy = Math.floor(p.pos.y/params.size);
-    let iz = Math.floor(p.pos.z/params.size);
+    let ix = Math.ceil((p.pos.x)/params.size);
+    let iy = Math.ceil((p.pos.y)/params.size);
+    let iz = Math.ceil((p.pos.z)/params.size);
     let vecIndex = ix+iy*params.c+iz*params.c*params.r;
     if(vecIndex<vectors.length){
       p.flow(vectors[vecIndex]);
     }
+		p.reappear();
     p.update();
+		p.show();
   }
 
   //frameCount

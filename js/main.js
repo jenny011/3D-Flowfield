@@ -6,7 +6,7 @@ let points=[],cube,obstacle;
 let angles=[],vectors=[];
 let params = {
 	fluctuation: true,
-	avoid:true,
+	obstacle:true,
 	fluctSpeed: 0.01,
 	randomness: 0.082,
 	xLength:10,
@@ -18,7 +18,7 @@ let params = {
 
 let gui = new dat.GUI();
 gui.add(params, 'fluctuation');
-gui.add(params, 'avoid');
+gui.add(params, 'obstacle');
 gui.add(params, 'fluctSpeed', 0.003, 0.03);
 gui.add(params, 'randomness', 0.05, 0.1);
 gui.add(params, 'xLength', 7, 15,1);
@@ -64,7 +64,7 @@ geometry2 = new THREE.Geometry();
 geometry2.vertices.push(new THREE.Vector3());
 material2 = new THREE.PointsMaterial( {
   color: 0x22CCDD,
-  size:0.08,
+  size:0.06,
   opacity:0.3,
   transparent:true,
   blending:THREE.AdditiveBlending
@@ -250,7 +250,7 @@ function render(){
 		noiseVec.clampLength(0,0.5/2);
 
     p.flow(noiseVec);
-		if(params.avoid == true){
+		if(params.obstacle == true){
 			p.avoidObstacle(obstacle);
 		}
 		p.reappear();

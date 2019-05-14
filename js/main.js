@@ -13,6 +13,7 @@ let params = {
 	yLength:10,
 	zLength:10,
 	particleColor:"#22CCDD",
+	particleOpacity:0.25,
 	obstacleColor:"#FFFFFF",
 };
 
@@ -71,6 +72,7 @@ material2 = new THREE.PointsMaterial( {
 } );
 
 gui.addColor(params, "particleColor").onChange(handleColorChange(material2.color));
+gui.add(params, "particleOpacity",0.1,0.5);
 gui.addColor(params, "obstacleColor").onChange(handleColorChange(material3.color));
 
 //<-------classes------->
@@ -88,6 +90,7 @@ class Particle{
   init(){
 		this.point.geometry.dynamic = true;
 		this.point.geometry.verticesNeedUpdate = true;
+		this.point.geometry.colorNeedUpdate = true;
     this.point.position.set(this.pos.x,this.pos.y,this.pos.z);
     scene.add(this.point);
   }
@@ -218,8 +221,9 @@ var fn = 'simplex';
 var frameCount = 0;
 var noiseOffset = Math.random()*100;
 function render(){
+	material2.opacity = params.particleOpacity;
 	frameCount ++ ;
-	if(params.avoid==true){
+	if(params.obstacle==true){
 		scene.add(obstacle.sphere);
 	}else{
 		scene.remove(obstacle.sphere);
